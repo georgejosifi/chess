@@ -29,6 +29,7 @@ class Piece(ABC):
 class Rook(Piece):
 
     def __init__(self, is_white, is_killed, square):
+        self.has_moved = False
         super().__init__('rook',is_white, is_killed, square)
 
 
@@ -53,8 +54,8 @@ class Rook(Piece):
 
 class Pawn(Piece):
 
-    def __init__(self, is_white, is_killed, square, is_first_move):
-        self.is_first_move = is_first_move
+    def __init__(self, is_white, is_killed, square):
+        self.has_moved = False
         self.dir = -1 if is_white else 1
         super().__init__('pawn', is_white, is_killed, square)
 
@@ -65,7 +66,7 @@ class Pawn(Piece):
         current_position = self.square.position
         forward_moves = [(current_position.row + self.dir, current_position.col)]
         
-        if self.is_first_move:
+        if not self.has_moved:
             forward_moves.append((current_position.row + 2*self.dir, current_position.col))
         
         capture_moves = [(current_position.row + self.dir, current_position.col+1),
@@ -192,6 +193,7 @@ class Queen(Piece):
 class King(Piece):
 
     def __init__(self, is_white, is_killed, square):
+        self.has_moved = False
         super().__init__('king', is_white, is_killed, square)
 
 
@@ -213,8 +215,42 @@ class King(Piece):
                 square = squares[row][col]
                 if not square.has_team_piece(self.is_white):
                     valid_moves.append(square.position)
+        
+        # add castling moves if valid
+        valid_moves.extend(self.valid_castle_moves(squares))
 
         return valid_moves
+    
+
+    def valid_castle_moves(self, squares):
+        valid_castle_moves = []
+        current_position = self.square.position
+        #castle king side
+        if not self.has_moved:
+            right_rook = squares[current_position.row][7].piece
+            if isinstance(right_rook,Rook):
+                if not right_rook.has_moved:
+                    for col in range(5,7):
+                        if squares[current_position.row][col].has_piece():
+                            break
+
+                        if col == 6:
+                            valid_castle_moves.append(Position(current_position.row,col))
+
+        #add castle queen side
+        if not self.has_moved:
+            left_rook = squares[current_position.row][0].piece
+            if isinstance(left_rook, Rook):
+                if not left_rook.has_moved:
+                    for col in range(1,4):
+                        if squares[current_position.row][col].has_piece():
+                            break
+
+                        if col == 3:
+                            valid_castle_moves.append(Position(current_position.row,2))
+
+
+        return valid_castle_moves
         
 
     def __str__(self):

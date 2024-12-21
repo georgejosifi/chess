@@ -63,9 +63,9 @@ class Board:
         #place pawns
         for j in range(0,8):
             self.squares[1][j] = Square(Position(1,j))
-            self.squares[1][j].piece = Pawn(False,False,self.squares[1][j], True)
+            self.squares[1][j].piece = Pawn(False,False,self.squares[1][j])
             self.squares[6][j] = Square(Position(6,j))
-            self.squares[6][j].piece = Pawn(True,False,self.squares[6][j], True)
+            self.squares[6][j].piece = Pawn(True,False,self.squares[6][j])
 
         #place empty Squares
         for i in range (2,6):
@@ -84,36 +84,35 @@ class Board:
                 else:
                     print('-', end = ' ')
 
-
-    def move_piece(self, start_position: Position, end_position: Position) -> bool:
-        if (start_position.row >7 or start_position.row <0 or start_position.col > 7 
-            or start_position.col<0 or end_position.row >7 or end_position.row <0 or end_position.col > 7 or end_position.col<0):
-            return False
-        
+    
+    def move_piece(self, start_position: Position, end_position: Position):
         start_square = self.squares[start_position.row][start_position.col]
         end_square = self.squares[end_position.row][end_position.col]
-        piece = start_square.piece
-        print(piece)
 
-        if piece == None:
-            print('Error: There is no piece in this square')
-            return False
-        
-        valid_piece_moves = piece.get_valid_moves(self.squares)
-        is_valid_move = any(position.row == end_position.row and position.col == end_position.col for position in valid_piece_moves)
-        if is_valid_move:
-            end_square.piece = piece
-            end_square.piece.square = end_square
-            start_square.piece = None
-            if isinstance(end_square.piece, Pawn):
-                end_square.piece.is_first_move = False
-            return True
-        else:
-            print("Error: Cannot move to that square")
-            return False
-        
+        end_square.piece = start_square.piece
+        end_square.piece.square = end_square
+        start_square.piece = None
 
+    def undo_move(self, start_position: Position, end_position: Position, captured_piece = None):
+        start_square = self.squares[start_position.row][start_position.col]
+        end_square = self.squares[end_position.row][end_position.col]
+
+        start_square.piece = end_square.piece
+        if start_square.piece:
+            start_square.piece.square = start_square
         
+        end_square.piece = captured_piece
+
+        if captured_piece:
+            captured_piece.square = end_square
+
+    
+
+    
+def is_castling_move(start_position: Position, end_position: Position):
+    return abs(start_position.col - end_position.col) == 2
+
+
 
 
         

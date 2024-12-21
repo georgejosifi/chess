@@ -62,7 +62,7 @@ class Main:
 
                 elif event.type == pygame.MOUSEBUTTONUP:
                     dragger.update_mouse(event.pos)
-                    if board.move_piece(dragger.initial_position, dragger.current_position):
+                    if game.move_piece(dragger.initial_position, dragger.current_position):
                         game.next_turn()
                     print(f'Initial Row: {dragger.initial_position.row}')
                     print(f'Initial col: {dragger.initial_position.col}')
