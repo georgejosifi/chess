@@ -75,14 +75,13 @@ class Game:
             if isinstance(piece, Pawn) or isinstance(piece, King) or isinstance(piece, Rook):
                 piece.has_moved = True
             
+            if isinstance(piece, Pawn):
+                self.pawn_promotion(piece, end_position)
+
             if isinstance(piece, King):
                 if is_castling_move(start_position, end_position):
-                    diff = end_position.col - start_position.col
-                    if diff > 0:
-                        start_position_of_rook, end_position_of_rook = Position(start_position.row,7), Position(start_position.row, 5)
-                    else: 
-                        start_position_of_rook, end_position_of_rook = Position(start_position.row,0), Position(start_position.row, 3)  
-                    self.board.move_piece(start_position_of_rook, end_position_of_rook) ## the rook doesnt move because it has the king to its left side
+                    self.castle(start_position, end_position)
+                    
 
             return True
 
@@ -92,8 +91,13 @@ class Game:
 
 
     
-    def next_turn(self):
-        self.is_white_turn = False if self.is_white_turn else True
+    
+    
+
+    def pawn_promotion(self, pawn, end_position):
+        if end_position.row == 0 or end_position.row == 7:
+            end_square = self.board.squares[end_position.row][end_position.col]
+            end_square.piece = Queen(pawn.is_white, False, end_square)
 
     #when the method discovers that a capture move is valid, it cannot reverse it..
     def in_check_filter(self, valid_moves, start_position, is_white):
@@ -112,22 +116,33 @@ class Game:
             
 
 
-    def is_king_in_check(self, temp_board, is_white):
+    def is_king_in_check(self, board, is_white):
         for row in range(8):
             for col in range(8):
-                if temp_board.squares[row][col].has_rival_piece(is_white):
-                    p = temp_board.squares[row][col].piece
-                    rival_moves = p.get_valid_moves(temp_board.squares)
+                if board.squares[row][col].has_rival_piece(is_white):
+                    p = board.squares[row][col].piece
+                    rival_moves = p.get_valid_moves(board.squares)
                     for moves in rival_moves:
-                        end_square = temp_board.squares[moves.row][moves.col]
+                        end_square = board.squares[moves.row][moves.col]
                         if isinstance(end_square.piece, King):
                             return True
                         
         return False
 
+    
+    def next_turn(self):
+        self.is_white_turn = False if self.is_white_turn else True
 
 
-
+    def castle(self, start_position, end_position):
+        diff = end_position.col - start_position.col
+        if diff > 0:
+            start_position_of_rook, end_position_of_rook = Position(start_position.row,7), Position(start_position.row, 5)
+        else: 
+            start_position_of_rook, end_position_of_rook = Position(start_position.row,0), Position(start_position.row, 3)  
+        
+        self.board.move_piece(start_position_of_rook, end_position_of_rook) 
+        
        
 def is_castling_move(start_position: Position, end_position: Position):
     return abs(start_position.col - end_position.col) == 2
