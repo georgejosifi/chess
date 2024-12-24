@@ -106,11 +106,6 @@ class Board:
         if captured_piece:
             captured_piece.square = end_square
 
-    
-
-    
-def is_castling_move(start_position: Position, end_position: Position):
-    return abs(start_position.col - end_position.col) == 2
 
 
 

@@ -3,6 +3,7 @@ import pygame
 import sys
 from game import Game
 from board import Board
+from graphics import Graphics
 
 
 class Main:
@@ -12,26 +13,28 @@ class Main:
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         pygame.display.set_caption('Chess')
         self.game = Game()
+        self.graphics = Graphics()
 
     def mainloop(self):
 
         screen = self.screen
         game = self.game
         board = self.game.board
-        dragger = self.game.dragger
+        graphics = self.graphics
+        dragger = self.graphics.dragger
         
         run = True
         while run:
             #show methods
-            game.show_bg(screen)
-            game.show_moves(screen)
-            game.show_pieces(screen)
-
-            if game.game_over:
-                game.show_game_over(screen)
-            
+            graphics.show_bg(screen)
+            if dragger.dragging:
+                graphics.show_moves(screen, game.get_valid_game_moves(dragger.piece))
+            graphics.show_pieces(screen, board.squares)
             if dragger.dragging:
                 dragger.update_blit(screen)
+                
+            if game.game_over:
+                graphics.show_game_over(screen, game.is_white_turn)
                 
             for event in pygame.event.get():
 
@@ -47,18 +50,18 @@ class Main:
                             dragger.save_initial(event.pos)
                             dragger.drag_piece(piece)
                             #show moves
-                            game.show_bg(screen)
-                            game.show_moves(screen)
-                            game.show_pieces(screen)
-                        
+                            graphics.show_bg(screen)
+                            if dragger.dragging:
+                                graphics.show_moves(screen, game.get_valid_game_moves(dragger.piece))
+                            graphics.show_pieces(screen, board.squares)
                      
                 elif event.type == pygame.MOUSEMOTION:
                     if dragger.dragging:
                         dragger.update_mouse(event.pos)
                         #show methods
-                        game.show_bg(screen)
-                        game.show_moves(screen)
-                        game.show_pieces(screen)
+                        graphics.show_bg(screen)
+                        graphics.show_moves(screen, game.get_valid_game_moves(dragger.piece))
+                        graphics.show_pieces(screen, board.squares)
                         dragger.update_blit(screen)
                         
 
@@ -70,15 +73,7 @@ class Main:
 
                     if game.is_checkmate():
                         game.game_over = True
-                        game.show_game_over(screen)
-
-
-
-                    print(f'Initial Row: {dragger.initial_position.row}')
-                    print(f'Initial col: {dragger.initial_position.col}')
-                    print(f'current row: {dragger.current_position.row}')
-                    print(f'current col: {dragger.current_position.col}')
-
+                        graphics.show_game_over(screen, game.is_white_turn)
 
                     dragger.undrag_piece()
 
@@ -87,8 +82,8 @@ class Main:
                         game.reset()
                         game = self.game
                         board = self.game.board
-                        dragger = self.game.dragger
-                    
+                        graphics = self.graphics
+                        dragger = self.graphics.dragger
                     
 
                 elif event.type == pygame.QUIT:
