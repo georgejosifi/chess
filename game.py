@@ -11,6 +11,7 @@ class Game:
         self.board = Board()
         self.dragger = Dragger() # nuk e di pse e futa ktu
         self.is_white_turn = True
+        self.game_over = False
         pass
 
 
@@ -56,6 +57,22 @@ class Game:
                 pygame.draw.rect(surface, color, rect)
 
 
+    def show_game_over(self, surface):
+        winner = "Black" if self.is_white_turn else "White"
+        rect = (WIDTH/2 - 1.5*SQSIZE, HEIGHT/2 - SQSIZE, 3*SQSIZE, 2*SQSIZE)
+        pygame.draw.rect(surface, 'black', rect)
+        font = pygame.font.Font(None, 25)
+        message = f'{winner} won the game'
+        text = font.render(message, True, 'white')
+        text_rect = text.get_rect(center = (WIDTH/2 - 0.2*SQSIZE, HEIGHT/2 - 0.5*SQSIZE))
+        surface.blit(text, text_rect)
+        restart_message = 'Press R to restart the game'
+        restart_text = font.render(restart_message, True, 'white')
+        restart_text_rect = text.get_rect(center = (WIDTH/2- 0.2*SQSIZE, HEIGHT/2 + 0.5*SQSIZE))
+        surface.blit(restart_text, restart_text_rect)
+
+
+
     #coje ke game
     def move_piece(self, start_position: Position, end_position: Position) -> bool:
         if (start_position.row >7 or start_position.row <0 or start_position.col > 7 
@@ -91,13 +108,23 @@ class Game:
 
 
     
-    
-    
 
     def pawn_promotion(self, pawn, end_position):
         if end_position.row == 0 or end_position.row == 7:
             end_square = self.board.squares[end_position.row][end_position.col]
             end_square.piece = Queen(pawn.is_white, False, end_square)
+
+    def is_checkmate(self):
+        for row in range(8):
+            for col in range(8):
+                current_square = self.board.squares[row][col]
+                if current_square.has_team_piece(self.is_white_turn):
+                    valid_moves = current_square.piece.get_valid_moves(self.board.squares)
+                    valid_moves = self.in_check_filter(valid_moves, current_square.position, self.is_white_turn)
+                    if valid_moves:
+                        return False
+                
+        return True
 
     #when the method discovers that a capture move is valid, it cannot reverse it..
     def in_check_filter(self, valid_moves, start_position, is_white):
@@ -142,6 +169,10 @@ class Game:
             start_position_of_rook, end_position_of_rook = Position(start_position.row,0), Position(start_position.row, 3)  
         
         self.board.move_piece(start_position_of_rook, end_position_of_rook) 
+
+
+    def reset(self):
+        self.__init__()
         
        
 def is_castling_move(start_position: Position, end_position: Position):

@@ -27,6 +27,9 @@ class Main:
             game.show_moves(screen)
             game.show_pieces(screen)
 
+            if game.game_over:
+                game.show_game_over(screen)
+            
             if dragger.dragging:
                 dragger.update_blit(screen)
                 
@@ -64,6 +67,13 @@ class Main:
                     dragger.update_mouse(event.pos)
                     if game.move_piece(dragger.initial_position, dragger.current_position):
                         game.next_turn()
+
+                    if game.is_checkmate():
+                        game.game_over = True
+                        game.show_game_over(screen)
+
+
+
                     print(f'Initial Row: {dragger.initial_position.row}')
                     print(f'Initial col: {dragger.initial_position.col}')
                     print(f'current row: {dragger.current_position.row}')
@@ -71,6 +81,14 @@ class Main:
 
 
                     dragger.undrag_piece()
+
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        game.reset()
+                        game = self.game
+                        board = self.game.board
+                        dragger = self.game.dragger
+                    
                     
 
                 elif event.type == pygame.QUIT:
